@@ -27,7 +27,7 @@
 ***************************************************************************/
 #include "ForwardRenderer.h"
 
-const std::string ForwardRenderer::skDefaultScene = "Arcade/Arcade.fscene";
+const std::string ForwardRenderer::skDefaultScene = "../Data/pink_room/pink_room.fscene";
 
 void ForwardRenderer::initDepthPass()
 {
@@ -106,11 +106,11 @@ void ForwardRenderer::initScene(SampleCallbacks* pSample, Scene::SharedPtr pScen
         vec3 position = pModel->getCenter();
         float radius = pModel->getRadius();
         position.y += 0.1f * radius;
-        pScene->setCameraSpeed(radius * 0.03f);
+        //pScene->setCameraSpeed(radius * 0.03f);
 
-        pCamera->setPosition(position);
-        pCamera->setTarget(position + vec3(0, -0.3f, -radius));
-        pCamera->setDepthRange(0.1f, radius * 10);
+        pCamera->setPosition(float3(-1.549782, 0.607599, -1.815019));
+        pCamera->setTarget(float3(-0.992040, 0.021567, -1.227235));
+        pCamera->setUpVector(float3(0.000000, 1.000000, 0.000000));
 
         pScene->addCamera(pCamera);
     }
@@ -193,7 +193,7 @@ void ForwardRenderer::loadScene(SampleCallbacks* pSample, const std::string& fil
     {
         initScene(pSample, pScene);
         applyCustomSceneVars(pScene.get(), filename);
-        applyCsSkinningMode();
+        //applyCsSkinningMode();
     }
 }
 
@@ -230,13 +230,13 @@ void ForwardRenderer::updateLightProbe(const LightProbe::SharedPtr& pLight)
 void ForwardRenderer::initAA(SampleCallbacks* pSample)
 {
     mTAA.pTAA = TemporalAA::create();
-    mpFXAA = FXAA::create();
+    //mpFXAA = FXAA::create();
     applyAaMode(pSample);
 }
 
 void ForwardRenderer::initPostProcess()
 {
-    mpToneMapper = ToneMapping::create(ToneMapping::Operator::Aces);
+    mpToneMapper = ToneMapping::create(ToneMapping::Operator::Clamp);
 }
 
 void ForwardRenderer::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext)
@@ -417,6 +417,7 @@ void ForwardRenderer::runTAA(RenderContext* pContext, Fbo::SharedPtr pColorFbo)
 void ForwardRenderer::ambientOcclusion(RenderContext* pContext, Fbo::SharedPtr pTargetFbo)
 {
     PROFILE("ssao");
+    mControls[EnableSSAO].enabled = false; // Prevent SSAO from being executed
     if (mControls[EnableSSAO].enabled)
     {
         Texture::SharedPtr pDepth = (mAAMode == AAMode::MSAA) ? mpResolveFbo->getColorTexture(2) : mpResolveFbo->getDepthStencilTexture();
@@ -434,15 +435,21 @@ void ForwardRenderer::ambientOcclusion(RenderContext* pContext, Fbo::SharedPtr p
 void ForwardRenderer::executeFXAA(RenderContext* pContext, Fbo::SharedPtr pTargetFbo)
 {
     PROFILE("fxaa");
-    if(mAAMode == AAMode::FXAA)
-    {
-        pContext->blit(pTargetFbo->getColorTexture(0)->getSRV(), mpResolveFbo->getRenderTargetView(0));
-        mpFXAA->execute(pContext, mpResolveFbo->getColorTexture(0), pTargetFbo);
-    }
+    //if(mAAMode == AAMode::FXAA)
+    //{
+    //    pContext->blit(pTargetFbo->getColorTexture(0)->getSRV(), mpResolveFbo->getRenderTargetView(0));
+    //    mpFXAA->execute(pContext, mpResolveFbo->getColorTexture(0), pTargetFbo);
+    //}
 }
 
 void ForwardRenderer::onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderContext, const Fbo::SharedPtr& pTargetFbo)
 {
+    mControls[EnableSSAO].enabled = false;
+    Camera::SharedPtr cam = mpSceneRenderer->getScene()->getActiveCamera();
+
+    cam->setPosition(float3(-1.549782, 0.607599, -1.815019));
+    cam->setTarget(float3(-0.992040, 0.021567, -1.227235));
+    cam->setUpVector(float3(0.000000, 1.000000, 0.000000));
     if (mpSceneRenderer)
     {
         beginFrame(pRenderContext, pTargetFbo.get(), pSample->getFrameID());
@@ -455,15 +462,15 @@ void ForwardRenderer::onFrameRender(SampleCallbacks* pSample, RenderContext* pRe
         resolveDepthMSAA(pRenderContext); // Only runs in MSAA mode
         shadowPass(pRenderContext);
         mpState->setFbo(mpMainFbo);
-        renderSkyBox(pRenderContext);
+        //renderSkyBox(pRenderContext);
         lightingPass(pRenderContext, pTargetFbo.get());
         resolveMSAA(pRenderContext);      // This will only run if we are in MSAA mode
 
         Fbo::SharedPtr pPostProcessDst = mControls[EnableSSAO].enabled ? mpPostProcessFbo : pTargetFbo;
         postProcess(pRenderContext, pPostProcessDst);
         runTAA(pRenderContext, pPostProcessDst); // This will only run if we are in TAA mode
-        ambientOcclusion(pRenderContext, pTargetFbo);
-        executeFXAA(pRenderContext, pTargetFbo);
+        //ambientOcclusion(pRenderContext, pTargetFbo);
+        //executeFXAA(pRenderContext, pTargetFbo);
 
         endFrame(pRenderContext);
     }
@@ -479,10 +486,10 @@ void ForwardRenderer::applyCameraPathState()
     const Scene* pScene = mpSceneRenderer->getScene().get();
     if(pScene->getPathCount())
     {
-        mUseCameraPath = mUseCameraPath;
+        mUseCameraPath = false;
         if (mUseCameraPath)
         {
-            pScene->getPath(0)->attachObject(pScene->getActiveCamera());
+            pScene->getPath(0)->detachObject(pScene->getActiveCamera());
         }
         else
         {
@@ -498,8 +505,8 @@ bool ForwardRenderer::onKeyEvent(SampleCallbacks* pSample, const KeyboardEvent& 
         switch (keyEvent.key)
         {
         case KeyboardEvent::Key::Minus:
-            mUseCameraPath = !mUseCameraPath;
-            applyCameraPathState();
+            //mUseCameraPath = !mUseCameraPath;
+            //applyCameraPathState();
             return true;
         case KeyboardEvent::Key::O:
             mPerMaterialShader = !mPerMaterialShader;

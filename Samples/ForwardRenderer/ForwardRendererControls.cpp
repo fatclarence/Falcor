@@ -38,8 +38,8 @@ const Gui::DropdownList aaModeList =
 {
     { 0, "None"},
     { 1, "MSAA" },
-    { 2, "TAA" },
-    { 3, "FXAA" }
+    { 2, "TAA" }
+    //{ 3, "FXAA" }
 };
 
 
@@ -139,12 +139,12 @@ void ForwardRenderer::applyAaMode(SampleCallbacks* pSample)
             resolveDesc.setColorTarget(1, ResourceFormat::RGBA8Unorm).setColorTarget(2, ResourceFormat::R32Float);
             mpResolveFbo = FboHelper::create2D(w, h, resolveDesc);
         }
-        else if (mAAMode == AAMode::FXAA)
+        /*else if (mAAMode == AAMode::FXAA)
         {
             Fbo::Desc resolveDesc;
             resolveDesc.setColorTarget(0, pSample->getCurrentFbo()->getColorTexture(0)->getFormat());
             mpResolveFbo = FboHelper::create2D(w, h, resolveDesc);
-        }
+        }*/
     }
 
     mpMainFbo = FboHelper::create2D(w, h, fboDesc);
@@ -178,7 +178,6 @@ void ForwardRenderer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
             loadScene(pSample, filename, true);
         }
     }
-
     if (mpSceneRenderer)
     {
         if (pGui->addButton("Load SkyBox Texture"))
@@ -193,7 +192,7 @@ void ForwardRenderer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
         if (pGui->beginGroup("Scene Settings"))
         {
             Scene* pScene = mpSceneRenderer->getScene().get();
-            float camSpeed = pScene->getCameraSpeed();
+            float camSpeed = 0;
             if (pGui->addFloatVar("Camera Speed", camSpeed))
             {
                 pScene->setCameraSpeed(camSpeed);
@@ -285,10 +284,10 @@ void ForwardRenderer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
                 }
             }
 
-            if (mAAMode == AAMode::FXAA)
-            {
-                mpFXAA->renderUI(pGui, "FXAA");
-            }
+            //if (mAAMode == AAMode::FXAA)
+            //{
+            //    mpFXAA->renderUI(pGui, "FXAA");
+            //}
 
             if (reapply) applyAaMode(pSample);
 
