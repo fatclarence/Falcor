@@ -108,8 +108,12 @@ void ForwardRenderer::initScene(SampleCallbacks* pSample, Scene::SharedPtr pScen
         position.y += 0.1f * radius;
         //pScene->setCameraSpeed(radius * 0.03f);
 
-        pCamera->setPosition(float3(-1.549782, 0.607599, -1.815019));
-        pCamera->setTarget(float3(-0.992040, 0.021567, -1.227235));
+        //pCamera->setPosition(float3(-1.549782, 0.607599, -1.815019));
+        //pCamera->setTarget(float3(-0.992040, 0.021567, -1.227235));
+        //pCamera->setUpVector(float3(0.000000, 1.000000, 0.000000));
+
+        pCamera->setPosition(float3(-2.574249, 1.051485, -1.209451));
+        pCamera->setTarget(float3(-1.963093, 0.507344, -0.634648));
         pCamera->setUpVector(float3(0.000000, 1.000000, 0.000000));
 
         pScene->addCamera(pCamera);
@@ -447,9 +451,14 @@ void ForwardRenderer::onFrameRender(SampleCallbacks* pSample, RenderContext* pRe
     mControls[EnableSSAO].enabled = false;
     Camera::SharedPtr cam = mpSceneRenderer->getScene()->getActiveCamera();
 
-    cam->setPosition(float3(-1.549782, 0.607599, -1.815019));
-    cam->setTarget(float3(-0.992040, 0.021567, -1.227235));
+    //cam->setPosition(float3(-1.549782, 0.607599, -1.815019));
+    //cam->setTarget(float3(-0.992040, 0.021567, -1.227235));
+    //cam->setUpVector(float3(0.000000, 1.000000, 0.000000));
+
+    cam->setPosition(float3(-2.574249, 1.051485, -1.209451));
+    cam->setTarget(float3(-1.963093, 0.507344, -0.634648));
     cam->setUpVector(float3(0.000000, 1.000000, 0.000000));
+
     if (mpSceneRenderer)
     {
         beginFrame(pRenderContext, pTargetFbo.get(), pSample->getFrameID());
